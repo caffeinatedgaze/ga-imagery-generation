@@ -1,0 +1,33 @@
+# System cruft
+.DS_Store
+
+# IDE files
+.idea/
+*/__pycache__/
+
+# VSC files
+.vscode/
+
+# Virtual Python env
+venv/
+
+# Compiled Python file(s)
+*.pyc
+
+# Database file(s)
+*.db
+*.sqlite
+*.sqlite3
+
+# Secret(s)
+*secret*
+
+# Python environment
+env/
+
+# Local settings file(s)
+local_settings.py
+
+# Local backup files
+*backup*
+*BACKUP*
