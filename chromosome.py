@@ -1,5 +1,7 @@
 from PIL import Image, ImageDraw
 from random import randint
+from math import sin, cos
+from cfg import *
 
 
 #
@@ -10,26 +12,26 @@ class Chromosome:
     x_bound: int
     y_bound: int
 
-    def __init__(self, n, im_size):
+    def __init__(self, n, im_size, length):
         global x_bound, y_bound
         x_bound = im_size[0]
         y_bound = im_size[1]
         self.strokes = []
         for i in range(n):
-            self.strokes.append(self.get_stroke())
+            self.strokes.append(self.get_stroke(length))
 
     @staticmethod
-    def get_stroke():
+    def get_stroke(length):
         x0 = randint(0, x_bound)
-        x1 = randint(0, x_bound)
         y0 = randint(0, y_bound)
-        y1 = randint(0, y_bound)
+        angle = randint(1, 360) / 100
+        x1 = length * cos(angle) + x0
+        y1 = length * sin(angle) + y0
         width = 1
         fill = (0,
                 0,
                 0,
                 randint(128, 255))
-
         return [x0, y0, x1, y1], fill, width
 
     def generate(self):
