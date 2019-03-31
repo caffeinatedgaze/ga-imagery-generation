@@ -1,110 +1,84 @@
-from PIL import Image, ImageDraw
-from time import time, clock
-import random
+from chromosome import Chromosome
+from random import randint
+from PIL import Image
 
-#
-# quads (x, y, width, greyscale)
-#
-
-im_size = (300, 300)
-
-
-class Chromosome:
-
-    def __init__(self, n, x_bound=im_size[0], y_bound=im_size[1]):
-        self.strokes = []
-        # random.seed(clock())
-        for i in range(n):
-            x0 = random.randint(0, x_bound)
-            x1 = random.randint(0, x_bound)
-            y0 = random.randint(0, y_bound)
-            y1 = random.randint(0, y_bound)
-            width = 2
-            fill = (0,
-                    0,
-                    0,
-                    random.randint(128, 255))
-            self.strokes.append(
-                ([x0, y0, x1, y1], fill, width))
-
-    def generate(self):
-        image = Image.new('RGBA', size=im_size, color=(64, 128, 128, 255))
-        draw = ImageDraw.Draw(image)
-        for stroke in self.strokes:
-            x0 = stroke[0][0]
-            y0 = stroke[0][1]
-            x1 = stroke[0][2]
-            y1 = stroke[0][3]
-            draw.line((x0, y0, x1, y1), stroke[1], stroke[2])
-        return image
+orig       = Image.open('src/tree_lossy.jpg')
+im_size    = orig.size
+n_strokes  = 1024
+pop_size   = 5
+population = []
+next_pop   = []
+fitness    = []
 
 
-class GA:
-    orig: Image
-    n_strokes: int
-    pop_size: int
-    pop: list
-    fitness: list
-
-    @staticmethod
-    def set_params(canonical_im, p_size=3, n_strks=1024):
-        global orig, pop_size, n_strokes, fitness
-        orig = canonical_im
-        pop_size = p_size
-        n_strokes = n_strks
-
-    @staticmethod
-    def gen_init_pop():
-        global pop, pop_size, n_strokes
-        pop = [Chromosome(n_strokes) for _ in range(pop_size)]
-
-    @staticmethod
-    def cal_pop_fitness():
-        global fitness
-        fitness = [GA.euclide(x.generate()) for x in pop]
-
-    @staticmethod
-    def euclide(im):
-        global orig
-        if orig.size != im.size:
-            raise Exception('Images should be of equal size\n{} and the one being generated are not'.
-                            format(orig.filename))
-        width, height = orig.size
-        distance = 0
-
-        for x in range(width):
-            for y in range(height):
-                r1, g1, b1 = orig.getpixel((x, y))
-                r2, g2, b2, _ = im.getpixel((x, y))
-                distance += ((r1 + g1 + b1) - (r2 + g2 + b2)) ** 2
-        return distance
-
-    @staticmethod
-    def get_fit():
-        return fitness
-
-    @staticmethod
-    def get_pop():
-        return pop
-
-    @staticmethod
-    def pop_show():
-        global pop
-        for ch in pop:
-            ch.generate().save('src/strokes.png', 'PNG')
+def set_params(canonical_im, size, p_size=3, n_strks=1024):
+    global orig, pop_size, n_strokes, fitness, next_pop, im_size
+    orig = canonical_im
+    im_size = size
+    pop_size = p_size
+    n_strokes = n_strks
+    next_pop = []
 
 
-def main():
-    start = time()
-    GA.set_params(Image.open('src/default.jpg'),
-                  p_size=10,
-                  n_strks=8192)
-    GA.gen_init_pop()
-    GA.cal_pop_fitness()
-    GA.pop_show()
-    print(GA.get_fit())
-    print('%.6f seconds' % (time() - start))
+def gen_init_pop():
+    global population, pop_size, n_strokes, im_size
+    population = [Chromosome(n_strokes, im_size) for _ in range(pop_size)]
 
 
-if __name__ == '__main__':
-    main()
+def cal_pop_fitness():
+    global fitness
+    fitness = [euclide(x.generate()) for x in population]
+
+
+def elitism():
+    global population, next_pop
+    best_ind = min(enumerate(fitness), key=lambda x: x[1])[0]
+    next_pop.append(population[best_ind])
+    population.remove(population[best_ind])
+
+
+def crossingover():
+    ind_1, ind_2 = randint(0, len(population) - 1), randint(0, len(population) - 1)
+
+    strokes_1 = population[ind_1].strokes
+    strokes_2 = population[ind_2].strokes
+    cross_point = len(strokes_1) // 2
+
+    for i in range(0, cross_point):
+        strokes_1[i], strokes_2[i] = strokes_2[i], strokes_1[i]
+
+    population[ind_1].strokes = strokes_1
+    population[ind_2].strokes = strokes_2
+
+
+def euclide(im):
+    global orig
+    if orig.size != im.size:
+        raise Exception('Images should be of equal size\n{} and the one being generated are not'.
+                        format(orig.filename))
+    width, height = orig.size
+    distance = 0
+
+    for x in range(width):
+        for y in range(height // 2 - height // 4, height - height // 4):
+            r1, g1, b1 = orig.getpixel((x, y))
+            r2, g2, b2, _ = im.getpixel((x, y))
+            distance += ((r1 + g1 + b1) - (r2 + g2 + b2)) ** 2
+    return distance
+
+
+def mutation():
+    ind = randint(len(population) // 2, len(population) - 1)
+    for i in range(len(population) // 2 - 1, ind):
+        strokes = population[ind].strokes
+        strokes[randint(0, len(strokes) - 1)] = Chromosome.get_stroke()
+        strokes[randint(0, len(strokes) - 1)] = Chromosome.get_stroke()
+        strokes[randint(0, len(strokes) - 1)] = Chromosome.get_stroke()
+        strokes[randint(0, len(strokes) - 1)] = Chromosome.get_stroke()
+        population[ind].strokes = strokes
+
+
+def final_touches():
+    global population, next_pop
+    population += next_pop
+    next_pop = []

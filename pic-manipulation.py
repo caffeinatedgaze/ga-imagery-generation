@@ -4,18 +4,18 @@ import os
 original = Image.open('/strg/ga-imagery-generation/src/default.jpg')
 
 
-def compute_distance(im1, im2):
-    if im1.size != im2.size:
+def compute_distance(orig, im):
+    if orig.size != im.size:
         raise Exception('Images should be of equal size\n{} and {} are not'.
-                        format(im1.filename, im2.filename))
+                        format(orig.filename, im.filename))
 
-    width, height = im1.size
+    width, height = orig.size
     distance = 0
 
     for x in range(width):
         for y in range(height):
-            r1, g1, b1 = im1.getpixel((x, y))
-            r2, g2, b2 = im2.getpixel((x, y))
+            r1, g1, b1, = orig.getpixel((x, y))
+            r2, g2, b2 = im.getpixel((x, y))
             distance += ((r1 + g1 + b1) - (r2 + g2 + b2)) ** 2
     return distance
 
