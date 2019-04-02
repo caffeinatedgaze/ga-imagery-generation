@@ -32,7 +32,7 @@ for item in sorted(results, key=lambda x: x[1]):
     print('{0:32}{1}'.format(item[0], item[1]))
 
 # default.jpg                     0
-# green_hue_max.jpg               1054896
+# green_hue_max.jpg               1054896l
 # small_dot.jpg                   5625244
 # posterize_13.jpg                11565293
 # lil_curve.jpg                   366959592
