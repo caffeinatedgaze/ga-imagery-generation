@@ -1,10 +1,7 @@
 from time import time
-from numpy.random import seed
 from matplotlib import pyplot
-
 from GA import *
-
-# import cfg
+import cfg
 
 start = time()
 
@@ -14,9 +11,10 @@ update_pop_fitness()
 sort_by_fittest()
 
 print('First population fitnesses', end='\t')
-print_fitnesses()
+print_all_fitness()
 
-cfg.population[0].generate().save('tmp/' + 'init_strokes.png', 'PNG')
+for i in range(cfg.pop_size - 1):
+    cfg.population[i].generate().save('init_pop/' + 'strokes' + str(i) + '.png', 'PNG')
 
 init_min_fit = min(cfg.population, key=lambda x: x.fitness).fitness
 best_outputs = []
@@ -28,14 +26,15 @@ for i in range(8196):
     best_outputs.append(cfg.population[0].fitness)
     second_outputs.append(cfg.population[1].fitness)
     print('Best two - {}\t{}'.format(cfg.population[0].fitness,
-                                     cfg.population[1].fitness))
+                                     cfg.population[1].fitness), end='\t\t')
+    print('Delta fitness -\t{}'.format(init_min_fit - min(cfg.population, key=lambda x: x.fitness).fitness))
 
     elitism()
     # print('Next pop is ', cfg.next_pop[0].fitness)
     crossingover()
     mutation()
 
-    if i % 5 == 0:
+    if i % 10 == 0:
         cfg.next_pop[0].generate().save('tmp/' + 'cur_strokes' + '.png', 'PNG')
         # cfg.next_pop[0].generate().save('tmp/' + 'strokes' + str(i) + '.png', 'PNG')
 

@@ -11,16 +11,46 @@ import cfg
 
 class Chromosome:
 
-    def __init__(self, n, func):
+    def __init__(self, n):
         self.strokes = []
         self.fitness = -1
-        for i in range(n):
-            self.strokes.append(func(cfg.length))
+        self.n = n
+        random_var = randint(0, 10)
+        if random_var <= 1:
+            print('Uniform')
+            self.gen_uniform()
+        elif 1 < random_var <= 7:
+            print('Normal')
+            self.gen_normal()
+        elif 7 < random_var <= 8:
+            print('Lower')
+            self.gen_lower()
+        else:
+            print('Upper')
+            self.gen_upper()
+
+    def gen_normal(self):
+        for i in range(self.n):
+            self.strokes.append(self.get_stroke_normal(cfg.length, cfg.x_bound, cfg.x_bound))
+
+    def gen_uniform(self):
+        for i in range(self.n):
+            self.strokes.append(self.get_stroke_uniform(cfg.length, (0, cfg.x_bound), (0, cfg.y_bound)))
+
+    def gen_lower(self):
+        for i in range(self.n):
+            self.strokes.append(self.get_stroke_uniform(cfg.length, (0, cfg.x_bound),
+                                                        (0, cfg.y_bound // 2)))
+
+    def gen_upper(self):
+        for i in range(self.n):
+            self.strokes.append(self.get_stroke_uniform(cfg.length, (0, cfg.x_bound),
+                                                        (cfg.y_bound // 2, cfg.y_bound)))
 
     @staticmethod
-    def get_stroke_normal(length):
-        x0 = normal(cfg.x_bound // 2, cfg.x_bound // 6)
-        y0 = normal(cfg.y_bound // 2, cfg.y_bound // 6)
+    def get_stroke_normal(length, x_bound, y_bound):
+        x0 = normal(x_bound // 2, x_bound // 8)
+        y0 = normal(y_bound // 2, y_bound // 8)
         angle = randint(1, 360) / 100
         # angle = 1
         x1 = length * cos(angle) + x0
@@ -33,9 +63,9 @@ class Chromosome:
         return [x0, y0, x1, y1], fill, width
 
     @staticmethod
-    def get_stroke_uniform(length):
-        x0 = uniform(0, cfg.x_bound)
-        y0 = uniform(0, cfg.y_bound)
+    def get_stroke_uniform(length, x_boundaries, y_boundaries):
+        x0 = uniform(x_boundaries[0], x_boundaries[1])
+        y0 = uniform(y_boundaries[0], y_boundaries[1])
         angle = randint(1, 360) / 100
         # angle = 1
         x1 = length * cos(angle) + x0
