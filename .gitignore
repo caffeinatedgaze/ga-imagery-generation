@@ -31,3 +31,6 @@ local_settings.py
 # Local backup files
 *backup*
 *BACKUP*
+
+tmp/
+init_pop/

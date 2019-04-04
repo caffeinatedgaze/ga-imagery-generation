@@ -1,5 +1,6 @@
+from numpy.random import randint, choice
 from chromosome import Chromosome
-import copy
+from copy import deepcopy
 import cfg
 
 
@@ -11,23 +12,62 @@ import cfg
 #
 
 def crossover():
+    distribution = [0.3, 0.3, 0.2, 0.2]
+    indices = choice(cfg.pop_size, 2, replace=False, p=distribution)
+    ch_1 = deepcopy(cfg.population[indices[0]])
+    ch_2 = deepcopy(cfg.population[indices[1]])
+
+    prior_1 = ch_1.fitness
+    prior_2 = ch_2.fitness
+
+    point = cfg.pop_size // 2
+    ch_1.program[:point], ch_2.program[:point] = ch_2.program[:point], ch_1.program[:point]
+    # check if fitness has changed to the better
+
+    update_fitness(ch_1)
+    if prior_1 > ch_1.fitness:
+        cfg.population[indices[0]] = ch_1
+
+    update_fitness(ch_2)
+    if prior_2 > ch_2.fitness:
+        cfg.population[indices[1]] = ch_2
+
     sort_by_fittest()
-    pass
 
 
 def mutation():
+    distribution = [0.3, 0.3, 0.3, 0.1]
+    indices = choice(cfg.pop_size, 1, replace=False, p=distribution)
+    ch = deepcopy(cfg.population[indices[0]])
+
+    point = randint(cfg.n_quads - 1)
+
+    prior = ch.fitness
+
+    for i in range(0, point):
+        ch.program[i] = Chromosome.get_quad_uniform(cfg.length, (0, cfg.x_bound), (0, cfg.y_bound))
+
+    update_fitness(ch)
+    if prior > ch.fitness:
+        cfg.population[indices[0]] = ch
+
     sort_by_fittest()
-    pass
 
 
 def elitism():
     ind_fittest = get_fittest()[0]
-    if cfg.prime and cfg.prime.fitness < cfg.population[ind_fittest].fitness:
-        cfg.population[ind_fittest] = copy.deepcopy(cfg.prime)
-        # we want the prime to stay the same, jic # cfg.prime = None
+    if cfg.prime:
+        if cfg.prime.fitness < cfg.population[ind_fittest].fitness:
+            cfg.population[ind_fittest] = deepcopy(cfg.prime)
+            # we want the prime to stay the same, jic # cfg.prime = None
+        elif cfg.prime.fitness != cfg.population[ind_fittest].fitness:
+            cfg.prime = deepcopy(cfg.population[ind_fittest])
+            cfg.prime.execute().save('tmp/' + 'prime_' +
+                                     str(cfg.prime.fitness) + '.png', 'PNG')
+            # fitness write threshold; save when it's better
     else:
         print('Best ch is - ', cfg.population[ind_fittest].fitness)
-        cfg.prime = copy.deepcopy(cfg.population[ind_fittest])
+        cfg.prime = deepcopy(cfg.population[ind_fittest])
 
 
 def gen_init_pop():
@@ -45,7 +85,11 @@ def sort_by_fittest():
 
 def update_pop_fitness():
     for ch in cfg.population:
-        ch.fitness = euclide(ch.execute())
+        update_fitness(ch)
+
+
+def update_fitness(ch):
+    ch.fitness = euclide(ch.execute())
 
 
 def euclide(im):

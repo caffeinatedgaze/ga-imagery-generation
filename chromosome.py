@@ -1,4 +1,4 @@
-from numpy.random import randint, normal, uniform
+from numpy.random import randint, normal, uniform, choice
 from math import sin, cos, radians
 from PIL import Image, ImageDraw
 import cfg
@@ -15,15 +15,11 @@ class Chromosome:
         self.fitness = -1
         self.n = n
         self.type = ''
-        random_var = randint(0, 10)
-        if random_var <= 1:
-            self.gen_uniform()
-        elif 1 < random_var <= 7:
-            self.gen_normal()
-        elif 7 < random_var <= 8:
-            self.gen_lower()
-        else:
-            self.gen_upper()
+        gen_func = [self.gen_uniform, self.gen_normal,
+                    self.gen_lower, self.gen_upper]
+        distribution = [1, 0, 0, 0]
+        index = choice(cfg.pop_size, None, replace=False, p=distribution)
+        gen_func[index]()
 
         # todo: do the python-way
 
@@ -38,7 +34,7 @@ class Chromosome:
         fill = (0,
                 0,
                 0,
-                randint(254, 255))
+                randint(32, 255))
         return [x0, y0, x1, y1], fill, width
 
     @staticmethod
@@ -52,7 +48,7 @@ class Chromosome:
         fill = (0,
                 0,
                 0,
-                randint(254, 255))
+                randint(32, 255))
         return [x0, y0, x1, y1], fill, width
 
     def execute(self):
