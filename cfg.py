@@ -1,12 +1,12 @@
 from PIL import Image
 
 orig = Image.open('src/circle_black.jpg')
-im_size = orig.size
-x_bound = im_size[0]
-y_bound = im_size[1]
-n_strokes = 1024
-length = 1
-pop_size = 16
+
+x_bound, y_bound = orig.size
+
 population = []
-next_pop = []
-fitness = []
+prime = None  # the best program is here
+
+n_quads = 1024
+length = 1
+pop_size = 4
