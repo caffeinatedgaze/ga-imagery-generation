@@ -18,10 +18,8 @@ class Chromosome:
         gen_func = [self.gen_uniform, self.gen_normal,
                     self.gen_lower, self.gen_upper]
         distribution = [1, 0, 0, 0]
-        index = choice(cfg.pop_size, None, replace=False, p=distribution)
+        index = choice(len(gen_func), None, replace=False, p=distribution)
         gen_func[index]()
-
-        # todo: do the python-way
 
     @staticmethod
     def get_quad_normal(length, x_bound, y_bound):

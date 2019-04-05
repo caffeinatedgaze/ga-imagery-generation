@@ -17,11 +17,11 @@ second_outputs = []
 print('First population fitness', get_all_fitness())
 print('First population fitness', get_all_types())
 
-for i in range(cfg.pop_size):
-    cfg.population[i].execute().save('init_pop/' + 'program_' +
-                                     str(cfg.population[i].fitness) + '.png', 'PNG')
+# for i in range(cfg.pop_size):
+#     cfg.population[i].execute().save('tmp/init_pop/' + 'program_' +
+#                                      str(cfg.population[i].fitness) + '.png', 'PNG')
 
-for i in range(65536):  # 2 ** 16
+for i in range(4096):  # 2 ** 16 = 65536
 
     elitism()
     sort_by_fittest()
@@ -29,8 +29,9 @@ for i in range(65536):  # 2 ** 16
     second_outputs.append(cfg.population[1].fitness)
 
     print('%.6d - %.6f seconds' % (i, (time() - start)), end='\t\t')
-    print('Best two - {}\t{}'.format(cfg.population[0].fitness,
-                                     cfg.population[1].fitness), end='\t\t')
+    print('Best two - {}\t{}\t{}'.format(cfg.population[0].fitness,
+                                         cfg.population[1].fitness,
+                                         cfg.population[2].fitness), end='\t\t')
     print('Delta fitness -\t{}'.format(init_min_fit - get_fittest()[1].fitness))
 
     # print(get_all_fitness())
@@ -53,6 +54,7 @@ pyplot.plot(best_outputs)
 pyplot.plot(second_outputs)
 pyplot.xlabel("Iteration")
 pyplot.ylabel("Fitness = euclide distance b\\w pictures")
+pyplot.savefig('tmp/analyse' + data['date'] + '.jpg')
 pyplot.show()
 
 elitism()
