@@ -70,9 +70,9 @@ def select_mating_pool(population, fitness, n_parents):
 @njit(parallel=False)
 def get_canvas(x_bound, y_bound):
     canvas = zeros(shape=(x_bound, y_bound, 3), dtype=uint8)
-    colors = array([255,
-                    255,
-                    255])
+    colors = array([randint(128, 256),
+                    randint(128, 256),
+                    randint(128, 256)])
     for i in prange(x_bound):
         for j in range(y_bound):
             canvas[i, j, 0], \
