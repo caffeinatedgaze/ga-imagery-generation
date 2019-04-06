@@ -1,26 +1,27 @@
+from gen_gif import npy_list_sorted
+from numpy import save, load
 from time import time
 from genetic import *
 from PIL import Image
-from numpy import save, load
 import cfg
+
+input('Press any button')
 
 start = time()
 
 cfg.new_population = gen_population(cfg.pop_size, (cfg.x_bound, cfg.y_bound))
 
-cfg.new_population[0] = load('library/_data__999900npy.npy')
-
-# for x in cfg.new_population:
-#     Image.fromarray(x).show()
+if npy_list_sorted():
+    cfg.new_population[0] = load('library/' + npy_list_sorted()[::-1][0])
 
 cfg.fitness = cal_pop_fitness(cfg.new_population, cfg.target)
 init_min_fitness = min(cfg.fitness)
 
 Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.jpeg', 'JPEG')
 
+chkpoint_fit = 0
 for i in range(2 ** 32):
     cfg.fitness = cal_pop_fitness(cfg.new_population, cfg.target)
-    # print(cfg.new_population[0].shape)
     parents = select_mating_pool(cfg.new_population, cfg.fitness, cfg.mating_size)
     cfg.offspring_crossover = crossover(parents, cfg.mating_size, (cfg.x_bound, cfg.y_bound),
                                         cfg.crossover_size)
@@ -32,14 +33,16 @@ for i in range(2 ** 32):
     cfg.new_population[parents.shape[0]:, :] = cfg.offspring_mutation
 
     print('%.6d - %.6f seconds' % (i, (time() - start)), end='\t\t')
-    print('Delta fitness -\t{}'.format(min(cfg.fitness) - init_min_fitness))
+    print('Delta fitness -\t{}'.format(init_min_fitness - min(cfg.fitness)))
 
-    if i % 100 == 0:
-        Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.jpeg', 'JPEG')
-        save('library/_data__' + str(i) + 'npy', get_best())
-
-# for i in range(1024):
-#     euclide(get_canvas(), cfg.target)
+    if abs(chkpoint_fit - min(cfg.fitness)) >= 10000:
+        save('library/_data__' + str(i), get_best())
+    if abs(chkpoint_fit - min(cfg.fitness)) >= 2500:
+        save('library/_data__' + str(i), get_best())
+        chkpoint_fit = min(cfg.fitness)
+        Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.png', 'PNG')
+        Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.jpg', 'JPEG')
+        save('library/_data__' + str(i), get_best())
 
 print('Total - %.6f seconds' % (time() - start), end='\t\t')
 print('Delta fitness -\t{}'.format(min(cfg.fitness) - init_min_fitness))

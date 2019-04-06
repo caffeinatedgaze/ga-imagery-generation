@@ -29,7 +29,7 @@ def crossover(parents, n_parents, size, offspring_size):
     return offspring
 
 
-@njit
+@njit(parallel=False)
 def mutation(offspring_crossover, size, offspring_size, length):
     # offspring = zeros((offspring_size, size[0], size[1], 4))
     for i in range(offspring_size):
@@ -73,7 +73,7 @@ def get_canvas(x_bound, y_bound):
     colors = array([randint(128, 256),
                     randint(128, 256),
                     randint(128, 256)])
-    for i in prange(x_bound):
+    for i in range(x_bound):
         for j in range(y_bound):
             canvas[i, j, 0], \
             canvas[i, j, 1], \
