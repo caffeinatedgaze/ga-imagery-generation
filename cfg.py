@@ -12,6 +12,8 @@ pop_size = 4
 mating_size = 1
 crossover_size = pop_size - mating_size
 
+n_color_ch = 4
+
 new_population = []
 parents = []
 offspring_crossover = []

@@ -17,7 +17,7 @@ if npy_list_sorted():
 cfg.fitness = cal_pop_fitness(cfg.new_population, cfg.target)
 init_min_fitness = min(cfg.fitness)
 
-Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.jpeg', 'JPEG')
+Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.png', 'PNG')
 
 chkpoint_fit = 0
 for i in range(2 ** 32):
@@ -41,7 +41,7 @@ for i in range(2 ** 32):
         save('library/_data__' + str(i), get_best())
         chkpoint_fit = min(cfg.fitness)
         Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.png', 'PNG')
-        Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.jpg', 'JPEG')
+        # Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.jpg', 'JPEG')
         save('library/_data__' + str(i), get_best())
 
 print('Total - %.6f seconds' % (time() - start), end='\t\t')

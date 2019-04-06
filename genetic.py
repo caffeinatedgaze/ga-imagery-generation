@@ -1,12 +1,12 @@
 from numpy.random import uniform, randint
 from numpy import array, zeros, empty, uint8, append, argsort
-from math import cos, sin, radians
+from math import cos, sin, radians, floor
 from numba import njit, prange
 import cfg
 
 
 def gen_population(pop_size, size):
-    population = zeros((pop_size, size[0], size[1], 3), dtype=uint8)
+    population = zeros((pop_size, size[0], size[1], cfg.n_color_ch), dtype=uint8)
     for i in range(pop_size):
         population[i] = get_canvas(size[0], size[1])
     return population
@@ -19,7 +19,7 @@ def get_best():
 
 @njit(parallel=False)
 def crossover(parents, n_parents, size, offspring_size):
-    offspring = zeros((offspring_size, size[0], size[1], 3), dtype=uint8)
+    offspring = zeros((offspring_size, size[0], size[1], cfg.n_color_ch), dtype=uint8)
     crossover_point = uint8(size[0] / 2)
     for k in range(offspring_size):
         parent1_idx = int((n_parents - 1) * uniform(0, 1) ** 2)
@@ -29,7 +29,7 @@ def crossover(parents, n_parents, size, offspring_size):
     return offspring
 
 
-@njit(parallel=False)
+# @njit(parallel=False)
 def mutation(offspring_crossover, size, offspring_size, length):
     # offspring = zeros((offspring_size, size[0], size[1], 4))
     for i in range(offspring_size):
@@ -69,33 +69,114 @@ def select_mating_pool(population, fitness, n_parents):
 
 @njit(parallel=False)
 def get_canvas(x_bound, y_bound):
-    canvas = zeros(shape=(x_bound, y_bound, 3), dtype=uint8)
+    canvas = zeros(shape=(x_bound, y_bound, cfg.n_color_ch), dtype=uint8)
     colors = array([randint(128, 256),
                     randint(128, 256),
-                    randint(128, 256)])
+                    randint(128, 256),
+                    randint(128,256)])
     for i in range(x_bound):
         for j in range(y_bound):
             canvas[i, j, 0], \
             canvas[i, j, 1], \
-            canvas[i, j, 2] = colors
+            canvas[i, j, 2],\
+            canvas[i, j, 3] = colors
     return canvas
 
 
 @njit(parallel=False)
 def draw_stroke(canvas, length, x_bound, y_bound):
-    x0 = randint(0, x_bound)
-    y0 = randint(0, y_bound)
+    x0 = randint(0, x_bound - 5)
+    y0 = randint(0, y_bound - 5)
     angle = radians(uniform(0, 360))
-    x1 = abs(int(length * cos(angle) + x0))
-    y1 = abs(int(length * sin(angle) + y0))
+    x1 = (int(length * cos(angle) + x0))
+    y1 = (int(length * sin(angle) + y0))
     # don't care about the angle yet
     fill = array([randint(255),
+                  randint(255),
                   randint(255),
                   randint(255)])
     alpha = uniform(0.3, 1)
     x0, x1 = min(x0, x1), max(x0, x1)
     y0, y1 = min(y0, y1), max(y0, y1)
     # print('Actual length is {}'.format(((x1 - x0) ** 2 + (y1 - y0) ** 2) ** (1/2)))
-    for i, j in zip(range(x0, min(x1 + 1, x_bound)), range(y0, min(y1 + 1, y_bound))):
+    pixels = interpolate_pixels_along_line(x0, y0, min(x1, x_bound - 2), min(y1, y_bound - 2))
+
+    for i, j in pixels:
         canvas[i, j] = fill * alpha + canvas[i, j] * (1 - alpha)
     return canvas
+
+
+"""
+    The code below comes from https://stackoverflow.com/questions/24702868/python3-pillow-get-all-pixels-on-a-line
+"""
+
+
+@njit
+def interpolate_pixels_along_line(x0, y0, x1, y1):
+    """Uses Xiaolin Wu's line algorithm to interpolate all of the pixels along a
+    straight line, given two points (x0, y0) and (x1, y1)
+
+    Wikipedia article containing pseudo code that function was based off of:
+        http://en.wikipedia.org/wiki/Xiaolin_Wu's_line_algorithm
+    """
+    pixels = []
+    steep = abs(y1 - y0) > abs(x1 - x0)
+
+    # Ensure that the path to be interpolated is shallow and from left to right
+    if steep:
+        t = x0
+        x0 = y0
+        y0 = t
+
+        t = x1
+        x1 = y1
+        y1 = t
+
+    if x0 > x1:
+        t = x0
+        x0 = x1
+        x1 = t
+
+        t = y0
+        y0 = y1
+        y1 = t
+
+    dx = x1 - x0
+    dy = y1 - y0
+    gradient = dy / dx  # slope
+
+    # Get the first given coordinate and add it to the return list
+    x_end = round(x0)
+    y_end = y0 + (gradient * (x_end - x0))
+    xpxl0 = x_end
+    ypxl0 = round(y_end)
+    if steep:
+        pixels.extend([(ypxl0, xpxl0), (ypxl0 + 1, xpxl0)])
+    else:
+        pixels.extend([(xpxl0, ypxl0), (xpxl0, ypxl0 + 1)])
+
+    interpolated_y = y_end + gradient
+
+    # Get the second given coordinate to give the main loop a range
+    x_end = round(x1)
+    y_end = y1 + (gradient * (x_end - x1))
+    xpxl1 = x_end
+    ypxl1 = round(y_end)
+
+    # Loop between the first x coordinate and the second x coordinate, interpolating the y coordinates
+    for x in range(xpxl0 + 1, xpxl1):
+        if steep:
+            pixels.extend([(floor(interpolated_y), x), (floor(interpolated_y) + 1, x)])
+
+        else:
+            pixels.extend([(x, floor(interpolated_y)), (x, floor(interpolated_y) + 1)])
+
+        interpolated_y += gradient
+
+    # Add the second given coordinate to the given list
+    if steep:
+        pixels.extend([(ypxl1, xpxl1), (ypxl1 + 1, xpxl1)])
+    else:
+        pixels.extend([(xpxl1, ypxl1), (xpxl1, ypxl1 + 1)])
+
+    return pixels
