@@ -4,6 +4,51 @@ from math import cos, sin, radians, floor
 from numba import njit, prange
 import cfg
 
+# canvas_palette = [
+#     [95,  # wall
+#      99,
+#      84]
+# ]
+# 
+# palette = [
+#     [207,  # wall
+#      207,
+#      207],
+#     [178,  # skin
+#      121,
+#      91],
+#     [75,  # shirt
+#      84,
+#      76],
+#     [79,    # eye
+#      71,
+#      60],
+#     [48,
+#      56,
+#      48],
+#     [110,   # lips
+#      70,
+#      62],
+#     [211,   # transm, cheek
+#      169,
+#      153]
+# ]
+
+canvas_palette = [
+    [27,
+     23,
+     22]
+]
+
+palette = [
+    [80,
+     80,
+     80]
+]     
+
+canvas_palette = array([array(x) for x in canvas_palette])
+palette = array([array(x) for x in palette])
+
 
 def gen_population(pop_size, size):
     population = zeros((pop_size, size[0], size[1], cfg.n_color_ch), dtype=uint8)
@@ -29,7 +74,7 @@ def crossover(parents, n_parents, size, offspring_size):
     return offspring
 
 
-# @njit(parallel=False)
+@njit(parallel=False)
 def mutation(offspring_crossover, size, offspring_size, length):
     # offspring = zeros((offspring_size, size[0], size[1], 4))
     for i in range(offspring_size):
@@ -38,12 +83,12 @@ def mutation(offspring_crossover, size, offspring_size, length):
     return offspring_crossover
 
 
-@njit(parallel=False)
+@njit(parallel=True)
 def cal_pop_fitness(population, target):
     fitness = zeros(shape=cfg.pop_size)
     for x in range(len(population)):
         distance = 0
-        for i in range(population[x].shape[0]):
+        for i in prange(population[x].shape[0]):
             for j in range(population[x].shape[1]):
                 for k in range(3):
                     distance += abs(int(population[x][i, j, k]) - int(target[i, j, k]) // 3)
@@ -51,35 +96,29 @@ def cal_pop_fitness(population, target):
     return fitness
 
 
-@njit(parallel=False)
+@njit(parallel=True)
 def select_mating_pool(population, fitness, n_parents):
     x_bound = population[0].shape[0]
     y_bound = population[0].shape[1]
     rgb = population[0].shape[2]
     parents = zeros((n_parents, x_bound, y_bound, rgb))
     indices = argsort(fitness)
-    for i in range(n_parents):
+    for i in prange(n_parents):
         parents[i] = population[indices[i]]
     return parents
 
 
-#
-# Code that generates a programargsort
-#
-
 @njit(parallel=False)
 def get_canvas(x_bound, y_bound):
     canvas = zeros(shape=(x_bound, y_bound, cfg.n_color_ch), dtype=uint8)
-    colors = array([randint(128, 256),
-                    randint(128, 256),
-                    randint(128, 256),
-                    randint(128,256)])
+
+    a = randint(len(canvas_palette))
+    colors = canvas_palette[a]
     for i in range(x_bound):
         for j in range(y_bound):
             canvas[i, j, 0], \
             canvas[i, j, 1], \
-            canvas[i, j, 2],\
-            canvas[i, j, 3] = colors
+            canvas[i, j, 2] = colors
     return canvas
 
 
@@ -91,11 +130,11 @@ def draw_stroke(canvas, length, x_bound, y_bound):
     x1 = (int(length * cos(angle) + x0))
     y1 = (int(length * sin(angle) + y0))
     # don't care about the angle yet
-    fill = array([randint(255),
-                  randint(255),
-                  randint(255),
-                  randint(255)])
-    alpha = uniform(0.3, 1)
+
+    a = randint(len(palette))
+    fill = palette[a]
+
+    alpha = 0.7
     x0, x1 = min(x0, x1), max(x0, x1)
     y0, y1 = min(y0, y1), max(y0, y1)
     # print('Actual length is {}'.format(((x1 - x0) ** 2 + (y1 - y0) ** 2) ** (1/2)))
@@ -111,7 +150,7 @@ def draw_stroke(canvas, length, x_bound, y_bound):
 """
 
 
-@njit
+@njit(parallel=False)
 def interpolate_pixels_along_line(x0, y0, x1, y1):
     """Uses Xiaolin Wu's line algorithm to interpolate all of the pixels along a
     straight line, given two points (x0, y0) and (x1, y1)

@@ -1,4 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont
+from fontTools.ttLib import TTFont
 from numpy import load, array, append
 import os
 
@@ -10,26 +11,31 @@ def npy_list_sorted():
 def main():
     frames = []
 
+    # font = TTFont("/home/fenchelfen/.local/share/Steam/clientui/fonts/Montserrat-Light.ttf")
+
     k = 0
+    p = 0
+    files_n = len(os.listdir('library/'))
     for filename in npy_list_sorted():
         print(filename)
-        if k < 32 or k % 2500 == 0 or (k > 20000 and k % 250 == 0):
+        if k % 25 == 0 or k >= files_n - 20:
+            p += 1
             im = Image.fromarray(load('library/' + filename))
             draw = ImageDraw.Draw(im)
-            # font = ImageFont.truetype("sans-serif.ttf", 9)
-            draw.text((0, 0), 'delta_' + filename.split('_')[3].split('npy')[0] + '\n' + str(k), (255, 255, 255))
+            # font = ImageFont.truetype(font, size=9)
+            draw.text((0, 0), 'IU_' + str(k), (255, 255, 255))
             frames.append(im)
         k += 1
 
-    # reversed = deepcopy(frames)
-    # reversed.reverse()
-
     if frames:
-        print(len(os.listdir('library/')))
-        frames[0].save('ryder.gif',
+        print(files_n)
+
+        print(p)
+
+        frames[1].save('yvette_tweet.gif',
                        save_all=True,
-                       append_images=(frames[1:]),
-                       duration=10,
+                       append_images=(frames[2:] + frames[::-2]),
+                       duration=1,
                        loop=0)
 
 

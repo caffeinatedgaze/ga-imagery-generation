@@ -20,7 +20,7 @@ init_min_fitness = min(cfg.fitness)
 Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.png', 'PNG')
 
 chkpoint_fit = 0
-for i in range(2 ** 32):
+for i in range(2 ** 64):
     cfg.fitness = cal_pop_fitness(cfg.new_population, cfg.target)
     parents = select_mating_pool(cfg.new_population, cfg.fitness, cfg.mating_size)
     cfg.offspring_crossover = crossover(parents, cfg.mating_size, (cfg.x_bound, cfg.y_bound),
@@ -35,13 +35,12 @@ for i in range(2 ** 32):
     print('%.6d - %.6f seconds' % (i, (time() - start)), end='\t\t')
     print('Delta fitness -\t{}'.format(init_min_fitness - min(cfg.fitness)))
 
+    if i % 250 == 0:
+        save('library/_data__' + str(i), get_best())
     if abs(chkpoint_fit - min(cfg.fitness)) >= 10000:
-        save('library/_data__' + str(i), get_best())
-    if abs(chkpoint_fit - min(cfg.fitness)) >= 2500:
-        save('library/_data__' + str(i), get_best())
         chkpoint_fit = min(cfg.fitness)
-        Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.png', 'PNG')
-        # Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.jpg', 'JPEG')
+        # Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.png', 'PNG')
+        Image.fromarray(get_best()).save('tmp/' + 'strokes' + '.jpg', 'JPEG')
         save('library/_data__' + str(i), get_best())
 
 print('Total - %.6f seconds' % (time() - start), end='\t\t')

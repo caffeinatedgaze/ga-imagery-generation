@@ -1,6 +1,8 @@
 # System cruft
 .DS_Store
 
+archive/
+
 # IDE files
 .idea/
 */__pycache__/
