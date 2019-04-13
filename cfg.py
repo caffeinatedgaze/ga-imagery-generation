@@ -1,16 +1,16 @@
 from numpy import array, zeros
 from PIL import Image
 
-orig = Image.open('src/lena_black.jpeg')
+orig = Image.open('contest/target.jpeg')
 target = array(orig)
 
 y_bound, x_bound = orig.size
 
 n_strokes = 255
-length = 32 
+length = 64 
 
-pop_size = 16 
-mating_size = 4
+pop_size = 32 
+mating_size = 18 
 crossover_size = pop_size - mating_size
 
 n_color_ch = 3

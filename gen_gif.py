@@ -28,7 +28,7 @@ def main():
 
         print(p)
 
-        frames[1].save('fighter.gif',
+        frames[1].save('animation.gif',
                        save_all=True,
                        append_images=(frames[2:] + frames[::-2]),
                        duration=1,

@@ -34,17 +34,86 @@ import cfg
 #      153]
 # ]
 
+# canvas_palette = [
+#     [27,
+#      23,
+#      22]
+# ]
+#
+# palette = [
+#     [53,
+#      53,
+#      53]
+# ]
+
+# canvas_palette = [
+#     [204,
+#      204,
+#      204]
+# ]
+#
+# palette = [
+#     [92,
+#      92,
+#      92]
+# ]
+
 canvas_palette = [
-    [27,
-     23,
-     22]
+    [234,
+     238,
+     239],
+    [116,
+     146,
+     218]
 ]
 
 palette = [
-    [80,
-     80,
-     80]
-]     
+    # [108,
+    #  68,
+    #  137],
+    # [84,
+    #  123,
+    #  190],
+    # [209,
+    #  211,
+    #  210],
+    [144,
+     42,
+     89],
+    [50,
+     29,
+     98]
+    # [185,
+    #  57,
+    #  82],
+    # [220,
+    #  220,
+    #  220]
+]
+
+# canvas_palette = [
+#     [0,
+#      156,
+#      200]
+# ]
+#
+# palette = [
+#     [0,
+#      0,
+#      0],
+#     [0,
+#      0,
+#      112],
+#     [4,
+#      13,
+#      142],
+#     [123,
+#      204,
+#      255],
+#     [220,
+#      250,
+#      255]
+# ]
 
 canvas_palette = array([array(x) for x in canvas_palette])
 palette = array([array(x) for x in palette])
@@ -59,7 +128,7 @@ def gen_population(pop_size, size):
 
 def get_best():
     indices = argsort(cfg.fitness)
-    return cfg.new_population[indices[0]]
+    return cfg.new_population[indices[0]], indices[0]
 
 
 @njit(parallel=False)
@@ -91,7 +160,7 @@ def cal_pop_fitness(population, target):
         for i in prange(population[x].shape[0]):
             for j in range(population[x].shape[1]):
                 for k in range(3):
-                    distance += abs(int(population[x][i, j, k]) - int(target[i, j, k]) // 3)
+                    distance += (int(population[x][i, j, k]) - int(target[i, j, k])) ** 2
         fitness[x] = distance
     return fitness
 
@@ -134,7 +203,7 @@ def draw_stroke(canvas, length, x_bound, y_bound):
     a = randint(len(palette))
     fill = palette[a]
 
-    alpha = 0.7
+    alpha = 0.12
     x0, x1 = min(x0, x1), max(x0, x1)
     y0, y1 = min(y0, y1), max(y0, y1)
     # print('Actual length is {}'.format(((x1 - x0) ** 2 + (y1 - y0) ** 2) ** (1/2)))
