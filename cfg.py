@@ -1,7 +1,7 @@
 from numpy import array, zeros
 from PIL import Image
 
-orig = Image.open('contest/target.jpeg')
+orig = Image.open('src/target.jpeg')
 target = array(orig)
 
 y_bound, x_bound = orig.size
