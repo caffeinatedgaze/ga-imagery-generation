@@ -11,8 +11,7 @@ cfg.new_population = gen_population(cfg.pop_size, (cfg.x_bound, cfg.y_bound))
 
 if npy_list_sorted():
     cfg.new_population[0] = load('library/' + npy_list_sorted()[::-1][0])
-
-print('Loaded\t\t' , npy_list_sorted()[::-1][0])
+    print('Loaded\t\t' , npy_list_sorted()[::-1][0])
 
 cfg.fitness = cal_pop_fitness(cfg.new_population, cfg.target)
 init_min_fitness = min(cfg.fitness)
